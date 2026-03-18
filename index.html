@@ -73,7 +73,6 @@
     .btn-full { width: 100%; margin-top: 6px; }
     .btn-green { background: #22c55e; color: #000; }
     .btn-red { background: #ef4444; color: #fff; font-size: 0.85em; padding: 6px 12px; }
-    .btn-gray { background: #6b7280; color: #fff; }
     .clienti-header {
       display: flex;
       justify-content: space-between;
@@ -127,9 +126,19 @@
     }
     .credito-box .label { color: #94a3b8; font-size: 0.85em; }
     .credito-box .valore { font-size: 2em; font-weight: bold; color: #f59e0b; }
-    .msg { padding: 10px; border-radius: 8px; margin-top: 8px; font-size: 0.9em; text-align: center; }
-    .msg.ok { background: #14532d; color: #86efac; }
-    .msg.err { background: #450a0a; color: #fca5a5; }
+    .modale-azioni { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .storico-title { font-weight: bold; margin-bottom: 10px; color: #94a3b8; font-size: 0.9em; }
+    .storico-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #334155;
+      font-size: 0.9em;
+    }
+    .storico-item:last-child { border-bottom: none; }
+    .storico-data { color: #64748b; }
+    .storico-importo.positivo { color: #22c55e; }
+    .storico-importo.negativo { color: #ef4444; }
     .cerca-risultato {
       background: #0f172a;
       border-radius: 10px;
@@ -137,6 +146,9 @@
       margin-top: 10px;
       display: none;
     }
+    .msg { padding: 10px; border-radius: 8px; margin-top: 8px; font-size: 0.9em; text-align: center; }
+    .msg.ok { background: #14532d; color: #86efac; }
+    .msg.err { background: #450a0a; color: #fca5a5; }
     .top { text-align: center; margin-bottom: 16px; width: 100%; }
     #login-screen {
       display: flex;
@@ -159,10 +171,10 @@
     #login-box p { color: #94a3b8; font-size: 0.9em; margin-bottom: 20px; }
     #login-error { color: #fca5a5; font-size: 0.9em; min-height: 20px; margin-bottom: 8px; }
     #app-screen { display: none; width: 100%; flex-direction: column; align-items: center; }
-    .aggiorna-btn { 
-      background: #334155; 
-      color: #94a3b8; 
-      font-size: 0.85em; 
+    .aggiorna-btn {
+      background: #334155;
+      color: #94a3b8;
+      font-size: 0.85em;
       padding: 6px 12px;
       border-radius: 8px;
     }
@@ -174,6 +186,28 @@
       padding: 2px 10px;
       font-size: 0.75em;
       margin-left: 8px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      max-width: 500px;
+      margin-bottom: 16px;
+    }
+    .tab {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background: #1e293b;
+      color: #94a3b8;
+      font-size: 0.95em;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .tab.active {
+      background: #f59e0b;
+      color: #000;
     }
   </style>
 </head>
@@ -198,31 +232,70 @@
       <h1>Gestione Merende</h1>
     </div>
 
-    <!-- CERCA -->
-    <div class="card">
-      <div class="card-title">🔍 Cerca cliente per codice</div>
-      <div class="row">
-        <input type="text" id="cerca-input" placeholder="Es. 1234" maxlength="4" />
-        <button class="btn-yellow" onclick="cercaCliente()">Cerca</button>
-      </div>
-      <div id="cerca-risultato" class="cerca-risultato"></div>
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" id="tab-locale" onclick="mostraTab('locale')">📱 Locale</button>
+      <button class="tab" id="tab-foglio" onclick="mostraTab('foglio')">📊 Foglio Google</button>
     </div>
 
-    <!-- LISTA CLIENTI DAL FOGLIO -->
-    <div class="card">
-      <div class="clienti-header">
-        <div class="card-title" style="margin-bottom:0">
-          📊 Clienti dal foglio Google
-          <span class="fonte-badge">LIVE</span>
+    <!-- SEZIONE LOCALE -->
+    <div id="sezione-locale" style="width:100%;display:flex;flex-direction:column;align-items:center">
+
+      <div class="card">
+        <div class="card-title">🔍 Cerca cliente per codice</div>
+        <div class="row">
+          <input type="text" id="cerca-input" placeholder="Es. 1234" maxlength="4" />
+          <button class="btn-yellow" onclick="cercaCliente()">Cerca</button>
         </div>
-        <button class="aggiorna-btn" onclick="caricaFoglio()">🔄 Aggiorna</button>
+        <div id="cerca-risultato" class="cerca-risultato"></div>
       </div>
-      <div class="count" id="count-clienti" style="margin-bottom:10px">Caricamento...</div>
-      <div id="lista-clienti"><p class="loading">⏳ Caricamento dal foglio Google...</p></div>
+
+      <div class="card">
+        <div class="card-title">👤 Nuovo cliente</div>
+        <input type="text" id="nuovo-nome" placeholder="Es. Marco R." />
+        <input type="text" id="nuovo-codice" placeholder="Codice 4 cifre (opzionale)" maxlength="4" />
+        <button class="btn-yellow btn-full" onclick="creaCliente()">Crea cliente</button>
+        <div id="msg-nuovo"></div>
+      </div>
+
+      <div class="card">
+        <div class="clienti-header">
+          <div class="card-title" style="margin-bottom:0">👥 Tutti i clienti</div>
+          <div class="count" id="count-clienti">0 clienti</div>
+        </div>
+        <div id="lista-clienti"><p class="empty">Nessun cliente ancora. Creane uno sopra!</p></div>
+      </div>
+
+    </div>
+
+    <!-- SEZIONE FOGLIO GOOGLE -->
+    <div id="sezione-foglio" style="width:100%;display:none;flex-direction:column;align-items:center">
+
+      <div class="card">
+        <div class="card-title">🔍 Cerca nel foglio per codice</div>
+        <div class="row">
+          <input type="text" id="cerca-foglio-input" placeholder="Es. 1234" maxlength="4" />
+          <button class="btn-yellow" onclick="cercaFoglio()">Cerca</button>
+        </div>
+        <div id="cerca-foglio-risultato" class="cerca-risultato"></div>
+      </div>
+
+      <div class="card">
+        <div class="clienti-header">
+          <div class="card-title" style="margin-bottom:0">
+            📊 Clienti dal foglio
+            <span class="fonte-badge">LIVE</span>
+          </div>
+          <button class="aggiorna-btn" onclick="caricaFoglio()">🔄 Aggiorna</button>
+        </div>
+        <div class="count" id="count-foglio" style="margin-bottom:10px">Caricamento...</div>
+        <div id="lista-foglio"><p class="loading">⏳ Caricamento...</p></div>
+      </div>
+
     </div>
   </div>
 
-  <!-- MODALE -->
+  <!-- MODALE LOCALE -->
   <div class="overlay" id="overlay" onclick="chiudiModale(event)">
     <div class="modale">
       <h3 id="m-nome"></h3>
@@ -231,7 +304,33 @@
         <div class="label">Credito disponibile</div>
         <div class="valore" id="m-credito">€0.00</div>
       </div>
-      <button class="btn-yellow btn-full" style="margin-top:8px" onclick="chiudiModaleBtn()">Chiudi</button>
+      <div style="margin-bottom:10px;">
+        <input type="number" id="m-importo" placeholder="Importo €" step="0.01" min="0" />
+      </div>
+      <div class="modale-azioni">
+        <button class="btn-green" onclick="registraMovimento('acquisto')">➕ Aggiungi credito</button>
+        <button class="btn-red" onclick="registraMovimento('spesa')">➖ Registra spesa</button>
+        <button class="btn-red" style="background:#6b7280" onclick="eliminaCliente()">🗑️ Elimina</button>
+      </div>
+      <div class="storico-title">STORICO MOVIMENTI</div>
+      <div id="m-storico"></div>
+      <button class="btn-yellow btn-full" style="margin-top:16px" onclick="chiudiModaleBtn()">Chiudi</button>
+    </div>
+  </div>
+
+  <!-- MODALE FOGLIO -->
+  <div class="overlay" id="overlay-foglio" onclick="chiudiModaleFoglio(event)">
+    <div class="modale">
+      <h3 id="mf-nome"></h3>
+      <div class="codice" id="mf-codice"></div>
+      <div class="credito-box">
+        <div class="label">Credito disponibile</div>
+        <div class="valore" id="mf-credito">€0.00</div>
+      </div>
+      <p style="color:#94a3b8;font-size:0.85em;text-align:center;margin-bottom:12px">
+        ℹ️ Per modificare il credito aggiorna il foglio Google
+      </p>
+      <button class="btn-yellow btn-full" onclick="chiudiModaleFoglioBtn()">Chiudi</button>
     </div>
   </div>
 
@@ -239,55 +338,169 @@
     const PASSWORD = "cracker-broski";
     const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vScOa5-G3oaGbReKI_XSr5zD9zKnoja5u1qWbdn3KSLMUGtnQizw5vRfBz1w1nLWILoq0K93Ipi4D_X/pub?gid=0&single=true&output=csv";
 
-    let clienti = [];
+    let clienteAperto = null;
+    let clientiFoglio = [];
 
+    // ---- LOGIN ----
     function checkPassword() {
       const input = document.getElementById('password-input').value;
       if (input === PASSWORD) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-screen').style.display = 'flex';
-        caricaFoglio();
+        aggiornaLista();
       } else {
         document.getElementById('login-error').textContent = '❌ Password errata, riprova.';
         document.getElementById('password-input').value = '';
       }
     }
+    document.getElementById('password-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
 
-    document.getElementById('password-input').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') checkPassword();
-    });
+    // ---- TABS ----
+    function mostraTab(tab) {
+      document.getElementById('sezione-locale').style.display = tab === 'locale' ? 'flex' : 'none';
+      document.getElementById('sezione-foglio').style.display = tab === 'foglio' ? 'flex' : 'none';
+      document.getElementById('tab-locale').className = 'tab' + (tab === 'locale' ? ' active' : '');
+      document.getElementById('tab-foglio').className = 'tab' + (tab === 'foglio' ? ' active' : '');
+      if (tab === 'foglio') caricaFoglio();
+    }
 
-    async function caricaFoglio() {
+    // ---- LOCALE ----
+    function getClienti() { return JSON.parse(localStorage.getItem('clienti') || '[]'); }
+    function salvaClienti(c) { localStorage.setItem('clienti', JSON.stringify(c)); }
+
+    function generaCodice() {
+      const clienti = getClienti();
+      let codice;
+      do { codice = String(Math.floor(1000 + Math.random() * 9000)); }
+      while (clienti.find(c => c.codice === codice));
+      return codice;
+    }
+
+    function creaCliente() {
+      const nome = document.getElementById('nuovo-nome').value.trim();
+      const codiceInput = document.getElementById('nuovo-codice').value.trim();
+      const msg = document.getElementById('msg-nuovo');
+      if (!nome) { msg.innerHTML = '<div class="msg err">⚠️ Inserisci un nome!</div>'; return; }
+      const clienti = getClienti();
+      const codice = codiceInput || generaCodice();
+      if (clienti.find(c => c.codice === codice)) { msg.innerHTML = '<div class="msg err">❌ Codice già esistente!</div>'; return; }
+      clienti.push({ nome, codice, credito: 0, storico: [] });
+      salvaClienti(clienti);
+      document.getElementById('nuovo-nome').value = '';
+      document.getElementById('nuovo-codice').value = '';
+      msg.innerHTML = '<div class="msg ok">✅ Cliente creato! Codice: <strong>' + codice + '</strong></div>';
+      aggiornaLista();
+      setTimeout(() => msg.innerHTML = '', 3000);
+    }
+
+    function cercaCliente() {
+      const codice = document.getElementById('cerca-input').value.trim();
+      const box = document.getElementById('cerca-risultato');
+      const cliente = getClienti().find(c => c.codice === codice);
+      box.style.display = 'block';
+      if (cliente) {
+        box.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:bold">${cliente.nome}</div>
+            <div style="color:#94a3b8;font-size:0.85em">Codice: ${cliente.codice}</div>
+            <div style="color:#f59e0b;font-weight:bold">Credito: €${cliente.credito.toFixed(2)}</div>
+          </div>
+          <button class="btn-yellow" onclick="apriModale('${cliente.codice}')">Apri</button>
+        </div>`;
+      } else {
+        box.innerHTML = '<div class="msg err">❌ Nessun cliente trovato con codice: ' + codice + '</div>';
+      }
+    }
+
+    function aggiornaLista() {
+      const clienti = getClienti();
+      document.getElementById('count-clienti').textContent = clienti.length + ' clienti';
       const lista = document.getElementById('lista-clienti');
-      const count = document.getElementById('count-clienti');
+      if (clienti.length === 0) { lista.innerHTML = '<p class="empty">Nessun cliente ancora. Creane uno sopra!</p>'; return; }
+      lista.innerHTML = clienti.map(c => `
+        <div class="cliente-item" onclick="apriModale('${c.codice}')">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div class="cliente-nome">${c.nome}</div>
+              <div class="cliente-info">Codice: ${c.codice}</div>
+            </div>
+            <div class="cliente-credito">€${c.credito.toFixed(2)}</div>
+          </div>
+        </div>`).join('');
+    }
+
+    function apriModale(codice) {
+      const cliente = getClienti().find(c => c.codice === codice);
+      if (!cliente) return;
+      clienteAperto = codice;
+      document.getElementById('m-nome').textContent = cliente.nome;
+      document.getElementById('m-codice').textContent = 'Codice: ' + cliente.codice;
+      document.getElementById('m-credito').textContent = '€' + cliente.credito.toFixed(2);
+      document.getElementById('m-importo').value = '';
+      const storico = cliente.storico.slice().reverse();
+      const storicoEl = document.getElementById('m-storico');
+      storicoEl.innerHTML = storico.length === 0 ? '<p class="empty">Nessun movimento ancora.</p>'
+        : storico.map(s => `
+          <div class="storico-item">
+            <div>
+              <div>${s.tipo === 'acquisto' ? '➕ Credito aggiunto' : '➖ Spesa registrata'}</div>
+              <div class="storico-data">${s.data}</div>
+            </div>
+            <div class="storico-importo ${s.tipo === 'acquisto' ? 'positivo' : 'negativo'}">
+              ${s.tipo === 'acquisto' ? '+' : '-'}€${s.importo.toFixed(2)}
+            </div>
+          </div>`).join('');
+      document.getElementById('overlay').classList.add('active');
+    }
+
+    function registraMovimento(tipo) {
+      const importo = parseFloat(document.getElementById('m-importo').value);
+      if (!importo || importo <= 0) { alert('Inserisci un importo valido!'); return; }
+      const clienti = getClienti();
+      const cliente = clienti.find(c => c.codice === clienteAperto);
+      if (!cliente) return;
+      if (tipo === 'spesa' && cliente.credito < importo) { alert('⚠️ Credito insufficiente!'); return; }
+      const ora = new Date();
+      const data = ora.toLocaleDateString('it-IT') + ' ' + ora.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+      cliente.storico.push({ tipo, importo, data });
+      cliente.credito += tipo === 'acquisto' ? importo : -importo;
+      salvaClienti(clienti);
+      aggiornaLista();
+      apriModale(clienteAperto);
+    }
+
+    function eliminaCliente() {
+      if (!confirm('Sei sicuro di voler eliminare questo cliente?')) return;
+      salvaClienti(getClienti().filter(c => c.codice !== clienteAperto));
+      aggiornaLista();
+      chiudiModaleBtn();
+    }
+
+    function chiudiModale(event) { if (event.target === document.getElementById('overlay')) chiudiModaleBtn(); }
+    function chiudiModaleBtn() { document.getElementById('overlay').classList.remove('active'); clienteAperto = null; }
+
+    // ---- FOGLIO GOOGLE ----
+    async function caricaFoglio() {
+      const lista = document.getElementById('lista-foglio');
+      const count = document.getElementById('count-foglio');
       lista.innerHTML = '<p class="loading">⏳ Caricamento dal foglio Google...</p>';
       count.textContent = 'Caricamento...';
-
       try {
         const res = await fetch(SHEET_URL + '&t=' + Date.now());
         const testo = await res.text();
-        const righe = testo.trim().split('\n').slice(1); // salta intestazione
-
-        clienti = righe
-          .filter(r => r.trim() !== '')
-          .map(r => {
-            const col = r.split(',');
-            return {
-              nome: (col[0] || '').trim().replace(/"/g, ''),
-              codice: (col[1] || '').trim().replace(/"/g, ''),
-              credito: parseFloat((col[2] || '0').trim().replace(/"/g, '')) || 0
-            };
-          });
-
-        count.textContent = clienti.length + ' clienti';
-
-        if (clienti.length === 0) {
-          lista.innerHTML = '<p class="empty">Nessun cliente nel foglio.</p>';
-          return;
-        }
-
-        lista.innerHTML = clienti.map(c => `
-          <div class="cliente-item" onclick="apriModale('${c.codice}')">
+        const righe = testo.trim().split('\n').slice(1);
+        clientiFoglio = righe.filter(r => r.trim() !== '').map(r => {
+          const col = r.split(',');
+          return {
+            nome: (col[0] || '').trim().replace(/"/g, ''),
+            codice: (col[1] || '').trim().replace(/"/g, ''),
+            credito: parseFloat((col[2] || '0').trim().replace(/"/g, '')) || 0
+          };
+        });
+        count.textContent = clientiFoglio.length + ' clienti';
+        if (clientiFoglio.length === 0) { lista.innerHTML = '<p class="empty">Nessun cliente nel foglio.</p>'; return; }
+        lista.innerHTML = clientiFoglio.map(c => `
+          <div class="cliente-item" onclick="apriModaleFoglio('${c.codice}')">
             <div style="display:flex;justify-content:space-between;align-items:center">
               <div>
                 <div class="cliente-nome">${c.nome}</div>
@@ -296,53 +509,45 @@
               <div class="cliente-credito">€${c.credito.toFixed(2)}</div>
             </div>
           </div>`).join('');
-
       } catch(e) {
-        lista.innerHTML = '<p class="msg err">❌ Errore nel caricamento del foglio. Riprova.</p>';
+        lista.innerHTML = '<p class="msg err">❌ Errore nel caricamento. Riprova.</p>';
         count.textContent = 'Errore';
       }
     }
 
-    function cercaCliente() {
-      const codice = document.getElementById('cerca-input').value.trim();
-      const box = document.getElementById('cerca-risultato');
-      const cliente = clienti.find(c => c.codice === codice);
+    function cercaFoglio() {
+      const codice = document.getElementById('cerca-foglio-input').value.trim();
+      const box = document.getElementById('cerca-foglio-risultato');
+      const cliente = clientiFoglio.find(c => c.codice === codice);
       box.style.display = 'block';
       if (cliente) {
-        box.innerHTML = `
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <div style="font-weight:bold">${cliente.nome}</div>
-              <div style="color:#94a3b8;font-size:0.85em">Codice: ${cliente.codice}</div>
-              <div style="color:#f59e0b;font-weight:bold">Credito: €${cliente.credito.toFixed(2)}</div>
-            </div>
-            <button class="btn-yellow" onclick="apriModale('${cliente.codice}')">Apri</button>
-          </div>`;
+        box.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:bold">${cliente.nome}</div>
+            <div style="color:#94a3b8;font-size:0.85em">Codice: ${cliente.codice}</div>
+            <div style="color:#f59e0b;font-weight:bold">Credito: €${cliente.credito.toFixed(2)}</div>
+          </div>
+          <button class="btn-yellow" onclick="apriModaleFoglio('${cliente.codice}')">Apri</button>
+        </div>`;
       } else {
         box.innerHTML = '<div class="msg err">❌ Nessun cliente trovato con codice: ' + codice + '</div>';
       }
     }
 
-    function apriModale(codice) {
-      const cliente = clienti.find(c => c.codice === codice);
+    function apriModaleFoglio(codice) {
+      const cliente = clientiFoglio.find(c => c.codice === codice);
       if (!cliente) return;
-      document.getElementById('m-nome').textContent = cliente.nome;
-      document.getElementById('m-codice').textContent = 'Codice: ' + cliente.codice;
-      document.getElementById('m-credito').textContent = '€' + cliente.credito.toFixed(2);
-      document.getElementById('overlay').classList.add('active');
+      document.getElementById('mf-nome').textContent = cliente.nome;
+      document.getElementById('mf-codice').textContent = 'Codice: ' + cliente.codice;
+      document.getElementById('mf-credito').textContent = '€' + cliente.credito.toFixed(2);
+      document.getElementById('overlay-foglio').classList.add('active');
     }
 
-    function chiudiModale(event) {
-      if (event.target === document.getElementById('overlay')) chiudiModaleBtn();
-    }
+    function chiudiModaleFoglio(event) { if (event.target === document.getElementById('overlay-foglio')) chiudiModaleFoglioBtn(); }
+    function chiudiModaleFoglioBtn() { document.getElementById('overlay-foglio').classList.remove('active'); }
 
-    function chiudiModaleBtn() {
-      document.getElementById('overlay').classList.remove('active');
-    }
-
-    document.getElementById('cerca-input').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') cercaCliente();
-    });
+    document.getElementById('cerca-input').addEventListener('keydown', e => { if (e.key === 'Enter') cercaCliente(); });
+    document.getElementById('cerca-foglio-input').addEventListener('keydown', e => { if (e.key === 'Enter') cercaFoglio(); });
   </script>
 </body>
 </html>
