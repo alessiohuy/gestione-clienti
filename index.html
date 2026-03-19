@@ -235,7 +235,7 @@
   </div>
 
   <script>
-    const PASSWORD = "cracker-broski";
+    const PASSWORD = "crecker-broski";
     const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYL5EZqvxcol3whrn5wvCs-YVmravBrYM4xoXPkz2uTfZ_eKzQ5Y2UjrSaWc9DtfJwkD0Zb31gbWob/pub?output=csv";
 
     let clienti = [];
@@ -280,4 +280,50 @@
             <div style="display:flex;justify-content:space-between;align-items:center">
               <div>
                 <div class="cliente-nome">${c.nome}</div>
-                <div class="cliente-info">Codice: ${c.codice
+                <div class="cliente-info">Codice: ${c.codice}</div>
+              </div>
+              <div class="cliente-credito">€${c.credito.toFixed(2)}</div>
+            </div>
+          </div>`).join('');
+      } catch(e) {
+        lista.innerHTML = '<p class="msg err">❌ Errore nel caricamento. Riprova.</p>';
+        count.textContent = 'Errore';
+      }
+    }
+
+    function cercaCliente() {
+      const codice = document.getElementById('cerca-input').value.trim();
+      const box = document.getElementById('cerca-risultato');
+      const cliente = clienti.find(c => c.codice === codice);
+      box.style.display = 'block';
+      if (cliente) {
+        box.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:bold">${cliente.nome}</div>
+              <div style="color:#94a3b8;font-size:0.85em">Codice: ${cliente.codice}</div>
+              <div style="color:#f59e0b;font-weight:bold">Credito: €${cliente.credito.toFixed(2)}</div>
+            </div>
+            <button class="btn-yellow" onclick="apriModale('${cliente.codice}')">Apri</button>
+          </div>`;
+      } else {
+        box.innerHTML = '<div class="msg err">❌ Nessun cliente trovato con codice: ' + codice + '</div>';
+      }
+    }
+
+    function apriModale(codice) {
+      const cliente = clienti.find(c => c.codice === codice);
+      if (!cliente) return;
+      document.getElementById('m-nome').textContent = cliente.nome;
+      document.getElementById('m-codice').textContent = 'Codice: ' + cliente.codice;
+      document.getElementById('m-credito').textContent = '€' + cliente.credito.toFixed(2);
+      document.getElementById('overlay').classList.add('active');
+    }
+
+    function chiudiModale(event) { if (event.target === document.getElementById('overlay')) chiudiModaleBtn(); }
+    function chiudiModaleBtn() { document.getElementById('overlay').classList.remove('active'); }
+
+    document.getElementById('cerca-input').addEventListener('keydown', e => { if (e.key === 'Enter') cercaCliente(); });
+  </script>
+</body>
+</html>
